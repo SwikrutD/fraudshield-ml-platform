@@ -11,9 +11,9 @@ __pycache__/
 data/raw/
 data/processed/
 
-models/*.pkl
-models/*.joblib
-models/*.bin
+# models/*.pkl
+# models/*.joblib
+# models/*.bin
 
 .vscode/
 .idea/

@@ -1,0 +1,29 @@
+{
+    "model_name": "fraud_xgboost_v1",
+    "algorithm": "XGBoost Classifier",
+    "dataset": "IEEE-CIS Fraud Detection",
+    "training_rows": 472432,
+    "validation_rows": 118108,
+    "num_features": 343,
+    "selected_threshold": 0.325,
+    "hyperparameters": {
+        "n_estimators": 300,
+        "max_depth": 8,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "scale_pos_weight": 27.46147358274595
+    },
+    "metrics": {
+        "precision": 0.16633858267716536,
+        "recall": 0.7901082677165354,
+        "f1_score": 0.2748202670318384,
+        "roc_auc": 0.9039951762988563,
+        "pr_auc": 0.510835480527402,
+        "false_positive_rate": 0.14111220230788116,
+        "true_positives": 3211,
+        "false_positives": 16093,
+        "false_negatives": 853,
+        "true_negatives": 97951
+    }
+}
