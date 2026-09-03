@@ -1,15 +1,14 @@
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
+
 class TransactionRequest(BaseModel):
     """
     Input schema for one transaction prediction request.
-
-    For now, we accept a flexible dictionary of features.
-    Later, this can be replaced with a stricter schema.
     """
 
     transaction_id: Optional[str] = None
+    actual_is_fraud: Optional[bool] = None
     features: Dict[str, Any]
 
 
@@ -23,3 +22,5 @@ class PredictionResponse(BaseModel):
     predicted_fraud: bool
     threshold: float
     risk_level: str
+    inference_time_ms: float
+    logged_to_database: bool
