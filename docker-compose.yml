@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: fraudshield_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: fraudshield_db
+      POSTGRES_USER: fraudshield_user
+      POSTGRES_PASSWORD: fraudshield_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - fraudshield_postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+
+volumes:
+  fraudshield_postgres_data:

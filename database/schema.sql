@@ -94,10 +94,14 @@ CREATE TABLE predictions (
     -- Threshold used at prediction time.
     decision_threshold NUMERIC(6, 4),
 
+    risk_level VARCHAR(20),
+
     -- Useful production metric.
     inference_time_ms NUMERIC(10, 3),
 
     predicted_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+
+    
 );
 
 

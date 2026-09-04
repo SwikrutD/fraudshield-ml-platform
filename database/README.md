@@ -11,3 +11,10 @@ This folder contains the PostgreSQL schema for the FraudShield ML platform.
 - `fraud_alerts`: alert workflow for high-risk transactions
 
 The schema is designed for a production-style fraud monitoring system where the model predictions are stored, tracked and reviewed.
+
+## Run PostgreSQL Locally
+
+The project uses Docker Compose to run PostgreSQL locally.
+
+```bash
+docker compose up -d

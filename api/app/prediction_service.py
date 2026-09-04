@@ -30,15 +30,16 @@ def assign_risk_level(fraud_probability: float) -> str:
 def prepare_features(input_features: dict) -> pd.DataFrame:
     """
     Convert request features into a model-ready DataFrame.
+
+    This version avoids repeatedly inserting columns one by one,
+    which caused pandas DataFrame fragmentation warnings.
     """
 
     input_df = pd.DataFrame([input_features])
 
-    for feature in feature_list:
-        if feature not in input_df.columns:
-            input_df[feature] = 0
+    # Reindex creates all missing model columns at once and keeps the correct order.
+    input_df = input_df.reindex(columns=feature_list, fill_value=0)
 
-    input_df = input_df[feature_list]
     input_df = input_df.apply(pd.to_numeric, errors="coerce")
     input_df = input_df.fillna(0)
 

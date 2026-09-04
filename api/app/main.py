@@ -84,10 +84,19 @@ def predict_transaction(
 
     transaction_amount = request.features.get("TransactionAmt")
 
-    transaction = Transaction(
-        external_transaction_id=request.transaction_id,
-        amount=transaction_amount,
-        is_fraud=request.actual_is_fraud
+    existing_transaction = (
+    db.query(Transaction)
+    .filter(Transaction.external_transaction_id == request.transaction_id)
+    .first()
+    )
+
+    if existing_transaction:
+        transaction = existing_transaction
+    else:
+        transaction = Transaction(
+            external_transaction_id=request.transaction_id,
+            amount=transaction_amount,
+            is_fraud=request.actual_is_fraud
     )
 
     db.add(transaction)
