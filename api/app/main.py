@@ -1,9 +1,10 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
-
+from fastapi import Depends, FastAPI, Query
 from api.app.database import get_db
 from api.app.db_models import Transaction, ModelRun, Prediction, FraudAlert
-from api.app.schemas import TransactionRequest, PredictionResponse
+from api.app.schemas import TransactionRequest, PredictionResponse, \
+     PredictionRecord, AlertRecord, DashboardMetrics
 from api.app.prediction_service import predict_fraud, metadata
 
 
@@ -137,3 +138,135 @@ def predict_transaction(
         "inference_time_ms": prediction_result["inference_time_ms"],
         "logged_to_database": True
     }
+
+
+@app.get("/predictions", response_model=list[PredictionRecord])
+def get_predictions(
+    limit: int = Query(default=25, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Return recent model predictions.
+
+    limit controls how many records are returned.
+    """
+
+    records = (
+        db.query(
+            Prediction.prediction_id,
+            Prediction.transaction_id,
+            Transaction.external_transaction_id,
+            Prediction.fraud_probability,
+            Prediction.predicted_fraud,
+            Prediction.decision_threshold.label("threshold"),
+            Prediction.risk_level,
+            Prediction.inference_time_ms,
+            Prediction.predicted_at
+        )
+        .join(Transaction, Prediction.transaction_id == Transaction.transaction_id)
+        .order_by(Prediction.predicted_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return records
+
+@app.get("/alerts", response_model=list[AlertRecord])
+def get_alerts(
+    limit: int = Query(default=25, ge=1, le=100),
+    status: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Return recent fraud alerts.
+
+    Optional status filter:
+    - new
+    - reviewing
+    - confirmed_fraud
+    - false_positive
+    - closed
+    """
+
+    query = (
+        db.query(
+            FraudAlert.alert_id,
+            FraudAlert.transaction_id,
+            FraudAlert.prediction_id,
+            Transaction.external_transaction_id,
+            Prediction.fraud_probability,
+            FraudAlert.risk_level,
+            FraudAlert.alert_status,
+            FraudAlert.created_at
+        )
+        .join(Transaction, FraudAlert.transaction_id == Transaction.transaction_id)
+        .join(Prediction, FraudAlert.prediction_id == Prediction.prediction_id)
+    )
+
+    if status:
+        query = query.filter(FraudAlert.alert_status == status)
+
+    records = (
+        query
+        .order_by(FraudAlert.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return records
+
+@app.get("/metrics", response_model=DashboardMetrics)
+def get_dashboard_metrics(
+    db: Session = Depends(get_db)
+):
+    """
+    Return simple dashboard metrics from stored prediction and alert data.
+    """
+
+    total_predictions = db.query(Prediction).count()
+
+    total_alerts = db.query(FraudAlert).count()
+
+    predicted_fraud_count = (
+        db.query(Prediction)
+        .filter(Prediction.predicted_fraud == True)
+        .count()
+    )
+
+    probabilities = db.query(Prediction.fraud_probability).all()
+
+    if probabilities:
+        average_fraud_probability = sum(
+            float(row.fraud_probability) for row in probabilities
+        ) / len(probabilities)
+    else:
+        average_fraud_probability = 0.0
+
+    critical_alerts = (
+        db.query(FraudAlert)
+        .filter(FraudAlert.risk_level == "critical")
+        .count()
+    )
+
+    high_alerts = (
+        db.query(FraudAlert)
+        .filter(FraudAlert.risk_level == "high")
+        .count()
+    )
+
+    medium_alerts = (
+        db.query(FraudAlert)
+        .filter(FraudAlert.risk_level == "medium")
+        .count()
+    )
+
+    return {
+        "total_predictions": total_predictions,
+        "total_alerts": total_alerts,
+        "predicted_fraud_count": predicted_fraud_count,
+        "average_fraud_probability": average_fraud_probability,
+        "critical_alerts": critical_alerts,
+        "high_alerts": high_alerts,
+        "medium_alerts": medium_alerts
+    }
+

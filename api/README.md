@@ -16,6 +16,19 @@ The API loads the saved model artifacts from:
 - `models/fraud_xgboost_v1/features.json`
 - `models/fraud_xgboost_v1/metadata.json`
 
+
+## Dashboard Read Endpoints
+
+The API includes read endpoints for dashboard and monitoring use:
+
+- `GET /predictions`: returns recent prediction logs
+- `GET /alerts`: returns recent fraud alerts
+- `GET /alerts?status=new`: returns alerts filtered by status
+- `GET /metrics`: returns dashboard summary metrics
+
+These endpoints allow the platform to move beyond one-time predictions and support ongoing fraud monitoring.
+
+
 ## Run Locally
 
 ```bash
