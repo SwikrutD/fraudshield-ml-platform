@@ -16,5 +16,29 @@ services:
       - fraudshield_postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fraudshield_user -d fraudshield_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+
+    container_name: fraudshield_api
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: postgresql://fraudshield_user:fraudshield_password@postgres:5432/fraudshield_db
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   fraudshield_postgres_data:
